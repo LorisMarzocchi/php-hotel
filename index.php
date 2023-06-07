@@ -40,6 +40,47 @@ $hotels = [
 
 ];
 
+
+$parkingFilter = isset($_GET['parking']) ? $_GET['parking'] : '';
+$voteFilter = isset($_GET['vote']) ? $_GET['vote'] : '';
+
+// Array hotel filtrati
+$filteredHotels = [];
+
+
+foreach ($hotels as $hotel) {
+    $addHotel = true;
+
+    // Verifica entrambi i filtri
+    if (!empty($parkingFilter) && !empty($voteFilter)) {
+        if (($parkingFilter == 'Con parcheggio' && !$hotel['parking']) || ($parkingFilter == 'Senza parcheggio' && $hotel['parking']) || ($hotel['vote'] < $voteFilter)) {
+            $addHotel = false;
+        }
+    } else {
+        // Verifica filtri singoli
+        if (!empty($parkingFilter) && $parkingFilter == 'Con parcheggio' && !$hotel['parking']) {
+            $addHotel = false;
+        }
+
+        if (!empty($parkingFilter) && $parkingFilter == 'Senza parcheggio' && $hotel['parking']) {
+            $addHotel = false;
+        }
+
+        if (!empty($voteFilter) && $hotel['vote'] < $voteFilter) {
+            $addHotel = false;
+        }
+    }
+
+    if ($addHotel) {
+        $filteredHotels[] = $hotel;
+    }
+}
+
+// Se nessun filtro è selezionato, mostra tutti gli hotel non filtrati
+if (empty($parkingFilter) && empty($voteFilter)) {
+    $filteredHotels = $hotels;
+}
+
 ?>
 
 
@@ -62,14 +103,15 @@ $hotels = [
     <form action="" method="GET">
         <div>
             <label for="parking">Parking</label>
-            <select id="parking">
-                <option name="" selected>Select</option>
-                <option name="">With Parking</option>
+            <select id="parking" name="parking">
+                <option name="" selected>Seleziona</option>
+                <option value="Con parcheggio">Con parcheggio</option>
+                <option value="Senza parcheggio">Senza parcheggio</option>
             </select>
             <label for="vote">Voto</label>
-            <input type="number" name="" id="vote">
+            <input type="number" name="vote" id="vote">
 
-            <button class="btn btn-primary" type="submit">FILTER</button>
+            <button class="btn btn-primary" type="submit">FILTRA</button>
 		</div>
     </form>
         <table class="table">
@@ -83,11 +125,11 @@ $hotels = [
                 </tr>
             </thead>
             <tbody>
-                <?php foreach ($hotels as $hotel) { ?>
+                <?php foreach ($filteredHotels as $hotel){ ?>
                     <tr>
                         <td><?= $hotel['name'] ?></td>
                         <td><?= $hotel['description'] ?></td>
-                        <td><?= $hotel['parking'] ?></td>
+                        <td><?= $hotel['parking'] ? 'Sì' : 'No' ?></td>
                         <td><?= $hotel['vote'] ?></td>
                         <td><?= $hotel['distance_to_center'] ?></td>
                     </tr>
